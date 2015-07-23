@@ -2,12 +2,12 @@
 import argparse
 import logging
 from io import StringIO
-from ttk2.formats import Unit, POStore, TSStore
+from ttk2.formats import Unit, POStore, TSStore, XLIFFStore
 
 
 # The idea of this list is to reuse the API of the different implementations
 # so we can test all at once if possible
-_IMPLEMENTED_STORES = [POStore, TSStore]
+_IMPLEMENTED_STORES = [POStore, TSStore, XLIFFStore]
 
 
 def test_single_unit():

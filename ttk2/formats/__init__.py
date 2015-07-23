@@ -1,9 +1,9 @@
-import json
-import jproperties
-import polib
 from collections import OrderedDict
 from enum import IntEnum
 from xml.etree import ElementTree
+import jproperties
+import json
+import polib
 
 
 class State(IntEnum):
@@ -79,12 +79,12 @@ class POStore(Store):
 		for unit in self.units:
 			occurences = unit.occurrences[:]
 			entry = polib.POEntry(
-				msgid = unit.key,
-				msgstr = unit.value,
-				comment = getattr(unit, "comment", ""),
-				tcomment = getattr(unit, "translator_comment", ""),
-				occurences = occurences,
-				obsolete = unit.obsolete,
+				msgid=unit.key,
+				msgstr=unit.value,
+				comment=getattr(unit, "comment", ""),
+				tcomment=getattr(unit, "translator_comment", ""),
+				occurences=occurences,
+				obsolete=unit.obsolete,
 			)
 			if unit.context:
 				entry.msgctxt = unit.context
@@ -297,3 +297,7 @@ def guess_format(path):
 					return cls
 
 	raise ValueError("Unknown format: %r" % (path))
+
+# TODO: For now importing XLIFFStore after all other implementations but once
+#       each one is split into its own module this will make no difference.
+from ._xliff import XLIFFStore
