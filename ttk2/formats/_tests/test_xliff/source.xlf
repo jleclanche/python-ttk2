@@ -1,0 +1,21 @@
+<xliff version="1.2">
+ <file target-language="pt-BR">
+  <body>
+   <trans-unit id="1">
+    <source>London</source>
+    <target>Londres</target>
+   </trans-unit>
+   <trans-unit id="2">
+    <source>Greece</source>
+   </trans-unit>
+   <trans-unit id="3">
+    <source xml:lang="en-US">Moscow</source>
+    <target>Moscou</target>
+   </trans-unit>
+   <trans-unit id="4">
+    <source xml:lang="en-US">Japan</source>
+    <target xml:lang="pt-BR">Japão</target>
+   </trans-unit>
+  </body>
+ </file>
+</xliff>

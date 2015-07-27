@@ -1,16 +1,16 @@
 #!/usr/bin/env python
+from io import StringIO
+from ttk2.conversion import convert
+from ttk2.formats import Unit, POStore, TSStore, XLIFFStore
 import argparse
 import filecmp
 import logging
 import os
-from io import StringIO
-from ttk2.conversion import convert
-from ttk2.formats import Unit, POStore, TSStore
 
 
 # The idea of this list is to reuse the API of the different implementations
 # so we can test all at once if possible
-_IMPLEMENTED_STORES = [POStore, TSStore]
+_IMPLEMENTED_STORES = [POStore, TSStore, XLIFFStore]
 _CACHE_MASK = "test/cache."
 _INPUT_MASK = "test/input_files/input."
 _EXPECTED_OUTPUT_MASK = "test/expected_output_files/output."

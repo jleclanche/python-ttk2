@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+	<file source-language="en" target-language="todo">
+		<body>
+			<trans-unit id="0">
+				<source>A</source>
+				<target>Alpha</target>
+			</trans-unit>
+			<trans-unit id="1">
+				<source>B</source>
+				<target>Bravo</target>
+			</trans-unit>
+			<trans-unit id="2">
+				<source>C</source>
+				<target>Charlie</target>
+			</trans-unit>
+			<trans-unit id="3">
+				<source>D</source>
+			</trans-unit>
+			<trans-unit id="4">
+				<source>E</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
