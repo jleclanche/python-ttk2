@@ -1,5 +1,6 @@
 {
     "Key_1": "Value_1",
     "Key_2": "Value_2",
-    "Key_3": "Value_3"
+    "Key_3": "Value_3",
+    "plural_key": ["plural_keys", ["value0", "value1", "value2"]]
 }

@@ -17,5 +17,10 @@
 				<seg>Value_3</seg>
 			</tuv>
 		</tu>
+		<tu>
+			<tuv xml:lang="todo">
+				<seg>{0: 'value0', 1: 'value1', 2: 'value2'}</seg>
+			</tuv>
+		</tu>
 	</body>
 </tmx>

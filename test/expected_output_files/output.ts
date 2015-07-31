@@ -14,5 +14,13 @@
 			<source>Key_3</source>
 			<translation>Value_3</translation>
 		</message>
+		<message numerus="yes">
+			<source>plural_key</source>
+			<translation>
+				<numerusform>value0</numerusform>
+				<numerusform>value1</numerusform>
+				<numerusform>value2</numerusform>
+			</translation>
+		</message>
 	</context>
 </TS>

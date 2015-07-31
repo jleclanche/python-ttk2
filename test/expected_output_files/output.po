@@ -1,4 +1,4 @@
-# 
+#
 msgid ""
 msgstr ""
 
@@ -10,3 +10,9 @@ msgstr "Value_2"
 
 msgid "Key_3"
 msgstr "Value_3"
+
+msgid "plural_key"
+msgid_plural "plural_keys"
+msgstr[0] "value0"
+msgstr[1] "value1"
+msgstr[2] "value2"

@@ -29,15 +29,20 @@ class Store:
 
 
 class Unit:
-	def __init__(self, key, value):
+	def __init__(self, key, value, variants_key=None, variants_values=None):
 		self.key = key
 		self.value = value
 		self.occurrences = []
 		self.context = ""
 		self.obsolete = False
 		self.state = State.UNKNOWN
+		self.variants_key = variants_key
+		self.variants_values = variants_values
 
 	def __repr__(self):
+		if self.variants_key:
+			return "<Unit> %r: <Unit-variants> %r: %s" % (self.key, 
+				self.variants_key, self.variants_values)
 		return "<Unit %r: %s>" % (self.key, self.value)
 
 
@@ -48,7 +53,11 @@ class POStore(Store):
 		po = polib.pofile(file.read())
 		lang = po.metadata.get("Language", lang)
 		for entry in po:
-			unit = Unit(entry.msgid, entry.msgstr)
+			if entry.msgid_plural:
+				unit = Unit(entry.msgid, entry.msgstr, entry.msgid_plural,
+					entry.msgstr_plural)
+			else:
+				unit = Unit(entry.msgid, entry.msgstr)
 			unit.lang = lang
 			unit.context = entry.msgctxt
 			unit.comment = entry.comment
@@ -64,7 +73,11 @@ class POStore(Store):
 
 			if srclang:
 				# Create a "source" unit as well
-				srcunit = Unit(entry.msgid, entry.msgid)
+				if entry.msgid_plural:
+					srcunit = Unit(entry.msgid, entry.msgid, entry.msgid_plural,
+						{0:entry.msgid, 1:entry.msgid_plural})
+				else:
+					srcunit = Unit(entry.msgid, entry.msgid)
 				srcunit.lang = srclang
 				srcunit.context = entry.msgctxt
 				srcunit.obsolete = entry.obsolete
@@ -86,6 +99,9 @@ class POStore(Store):
 				occurences = occurences,
 				obsolete = unit.obsolete,
 			)
+			if unit.variants_key:
+				entry.msgid_plural = unit.variants_key
+				entry.msgstr_plural = unit.variants_values
 			if unit.context:
 				entry.msgctxt = unit.context
 			if hasattr(unit, "po_flags"):
@@ -107,14 +123,23 @@ class JSONStore(Store):
 			if key == "@metadata":
 				self.header = d[key]
 				continue
-			unit = Unit(key, d[key])
+			if not isinstance(d[key], str):
+				dejson_values = {x:d[key][1][x] for x in range(len(d[key][1]))}
+				unit = Unit(key, "", d[key][0], dejson_values)
+			else:
+				unit = Unit(key, d[key])
 			unit.lang = lang
 			self.units.append(unit)
 
 	def serialize(self):
 		ret = OrderedDict()
 		for unit in self.units:
-			ret[unit.key] = unit.value
+			if unit.variants_key:
+				list_values = [unit.variants_values[x] for x in 
+				unit.variants_values]
+				ret[unit.key] = [unit.variants_key, list_values]
+			else:
+				ret[unit.key] = unit.value
 		return json.dumps(ret)
 
 
@@ -125,23 +150,37 @@ class PropertiesStore(Store):
 		props = jproperties.Properties()
 		props.load(file)
 		comment = None
+		prev_unit = None
 		for node in props.nodes:
 			if isinstance(node, jproperties.Comment):
 				comment = node.value
 			elif isinstance(node, jproperties.Property):
-				unit = Unit(node.key, node.value)
+				if node.value.find(";") != -1:
+					 prev_unit.variants_key = node.key
+					 var_list = [prev_unit.value] + [x for x in node.value.split(";")]
+					 prev_unit.variants_values = {i:var_list[i] for i in range(len(var_list))}
+					 prev_unit.value = ""
+					 continue
+				else:
+					unit = Unit(node.key, node.value)
 				unit.lang = lang
 				if comment:
 					unit.comment = comment
 					comment = None
 				self.units.append(unit)
+				prev_unit = unit
 
 	def serialize(self):
 		props = jproperties.Properties()
 		for unit in self.units:
 			if hasattr(unit, "comment"):
 				props.nodes.append(jproperties.Comment(unit.comment))
-			props[unit.key] = unit.value
+			if unit.variants_key:
+				props[unit.key] = unit.variants_values[0]
+				var_list = [val for val in list(unit.variants_values.values())[1:]]
+				props[unit.variants_key] = ";".join(var_list)
+			else:
+				props[unit.key] = unit.value
 
 		return str(props)
 
@@ -177,8 +216,15 @@ class TSStore(XMLStore):
 				source = message.findtext("source")
 				translation = message.find("translation")
 				translation_type = translation.attrib.get("type")
-
-				unit = Unit(source, translation.text or "")
+				
+				i = 0
+				var_dict = {}
+				if message.attrib.get("numerus"):
+					for numerusform in translation.findall("numerusform"):
+						var_dict[i] = numerusform.text
+					unit = Unit(source, "", source, var_dict)
+				else:
+					unit = Unit(source, translation.text or "")
 				unit.lang = lang
 				unit.context = context_name
 				for location in message.findall("location"):
@@ -218,7 +264,14 @@ class TSStore(XMLStore):
 			source = self._element("source", unit_element, text=unit.key)
 			if hasattr(unit, "comment"):
 				comment = self._element("comment", unit_element, text=unit.comment)
-			translation = self._element("translation", unit_element, text=unit.value)
+			if unit.variants_key:
+				unit_element.attrib["numerus"] = "yes"
+				translation = self._element("translation", unit_element)
+				for i in unit.variants_values:
+					numerusform = self._element("numerusform", translation, text=
+						unit.variants_values[i])
+			else:
+				translation = self._element("translation", unit_element, text=unit.value)
 			if unit.obsolete:
 				translation.attrib["type"] = "obsolete"
 
@@ -275,7 +328,10 @@ class TMXStore(XMLStore):
 			for unit in units:
 				tuv = self._element("tuv", tu)
 				tuv.attrib["xml:lang"] = unit.lang
-				seg = self._element("seg", tuv, unit.value)
+				if unit.variants_key:
+					seg = self._element("seg", tuv, str(unit.variants_values))
+				else:
+					seg = self._element("seg", tuv, unit.value)
 
 		return self._pretty_print(ElementTree.tostring(root))
 
